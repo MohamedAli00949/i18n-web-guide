@@ -80,18 +80,3 @@ All authoritative sources cited across the 6-part series, organized by topic.
 ## Radix UI & shadcn/ui RTL
 - [Radix UI DirectionProvider](https://www.radix-ui.com/)
 - [shadcn/ui RTL configuration](https://ui.shadcn.com/docs/rtl/)
-
-## Mohamed Ali's Live Examples (CodePen)
-- [dir attribute demo](https://codepen.io/mohamedali00949/pen/myExggR)
-- [unicode-bidi demo](https://codepen.io/mohamedali00949/pen/yyJxjYy?editors=1100)
-- [writing-mode demo](https://codepen.io/mohamedali00949/pen/xbOLvwg?editors=0110)
-- [text-orientation demo](https://codepen.io/mohamedali00949/pen/XJKPyQm?editors=0010)
-- [logical properties demo](https://codepen.io/mohamedali00949/pen/myrwZdz?editors=0010)
-- [font-weight demo](https://codepen.io/mohamedali00949/pen/GgjgZpw)
-- [font-width demo](https://codepen.io/mohamedali00949/pen/jEMEqLW)
-- [line-height demo](https://codepen.io/mohamedali00949/pen/RNGGxVe)
-- [letter-spacing cursive script demo](https://codepen.io/mohamedali00949/pen/yyaBdVq)
-- [date picker locale demo](https://codepen.io/mohamedali00949/pen/RNGRLNP)
-- [text editor i18n demo](https://codepen.io/mohamedali00949/pen/GgqdRYb?editors=0111)
-- [vertical form fields demo](https://codepen.io/mohamedali00949/pen/vEXYzyJ?editors=1100)
-- [font-family multi-language demo](https://codepen.io/bourhaouta/pen/GRgLqYL)
