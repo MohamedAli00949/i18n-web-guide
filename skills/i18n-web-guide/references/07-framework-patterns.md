@@ -110,6 +110,159 @@ import { Link, useRouter, usePathname } from '@/i18n/navigation';
 // next-intl wraps Next.js navigation to prepend the locale automatically
 ```
 
+## Next.js App Router + Lingui (RSC)
+
+Lingui supports React Server Components as of v4.10.0. Unlike next-intl which uses React context for client components, Lingui uses React `cache()` to maintain an I18n instance per request on the server — enabling the same `Trans` and `useLingui` API to work identically in both server and client components.
+
+### 1. Install
+```bash
+npm install @lingui/react @lingui/core
+npm install -D @lingui/swc-plugin @lingui/cli
+```
+
+### 2. `next.config.js`
+```js
+/** @type {import('next').NextConfig} */
+module.exports = {
+  experimental: {
+    swcPlugins: [["@lingui/swc-plugin", {}]]
+  }
+};
+```
+
+### 3. `lingui.config.ts`
+```ts
+import { defineConfig } from '@lingui/conf';
+
+export default defineConfig({
+  sourceLocale: 'en',
+  locales: ['en', 'ar', 'fr'],
+  catalogs: [{ path: 'src/locales/{locale}/messages', include: ['src'] }],
+  format: 'po'
+});
+```
+
+### 4. `src/appRouterI18n.ts` (server-only)
+
+Holds one I18n instance per locale for the entire app. Uses React `cache()` so each request gets an isolated instance.
+
+```ts
+import { setupI18n } from '@lingui/core';
+import { cache } from 'react';
+
+const localeImports = {
+  en: () => import('../locales/en/messages'),
+  ar: () => import('../locales/ar/messages'),
+  fr: () => import('../locales/fr/messages'),
+};
+
+export const getI18nInstance = cache(async (locale: string) => {
+  const { messages } = await localeImports[locale]();
+  return setupI18n({ locale, messages: { [locale]: messages } });
+});
+```
+
+### 5. `LinguiClientProvider.tsx` (client bridge)
+
+The I18n instance is not serializable and cannot be passed directly from server to client. Instead, pass `initialLocale` and `initialMessages` (plain serializable values) and reconstruct the instance on the client.
+
+```tsx
+"use client";
+
+import { I18nProvider } from "@lingui/react";
+import { type Messages, setupI18n } from "@lingui/core";
+import { useState } from "react";
+
+export function LinguiClientProvider({
+  children,
+  initialLocale,
+  initialMessages,
+}: {
+  children: React.ReactNode;
+  initialLocale: string;
+  initialMessages: Messages;
+}) {
+  const [i18n] = useState(() =>
+    setupI18n({
+      locale: initialLocale,
+      messages: { [initialLocale]: initialMessages },
+    })
+  );
+  return <I18nProvider i18n={i18n}>{children}</I18nProvider>;
+}
+```
+
+### 6. `app/[lang]/layout.tsx`
+
+```tsx
+import { setI18n } from "@lingui/react/server";
+import { getI18nInstance } from "../appRouterI18n";
+import { LinguiClientProvider } from "../LinguiClientProvider";
+
+type Props = { params: { lang: string }; children: React.ReactNode };
+
+export default async function RootLayout({ params: { lang }, children }: Props) {
+  const i18n = await getI18nInstance(lang);
+  setI18n(i18n); // makes i18n available to all server components in this request
+
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  return (
+    <html lang={lang} dir={dir}>
+      <body>
+        <LinguiClientProvider initialLocale={lang} initialMessages={i18n.messages}>
+          {children}
+        </LinguiClientProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 7. Using translations
+
+The same `Trans` and `useLingui` API works in **both server and client components** — no need to split translation logic by component type.
+
+```tsx
+import { Trans, useLingui } from "@lingui/react/macro";
+
+export function SomeComponent() {
+  const { t } = useLingui();
+  // In RSC, useLingui() is not a hook — it reads from React cache()
+  return (
+    <div>
+      <Trans>Some Item</Trans>
+      <p>{t`Other Item`}</p>
+    </div>
+  );
+}
+```
+
+### 8. Extract + compile workflow
+```bash
+npx lingui extract   # scans source files, updates .po catalogs
+# → send .po files to translators or TMS
+npx lingui compile   # compiles .po → .js message catalogs
+```
+
+### Key caveats
+
+- **Call `setI18n` in every page and layout** — not just the root layout. Because Next.js App Router layouts preserve state and don't re-render on navigation, the `setI18n` call in the root layout won't run again on page transitions. Each nested page and layout must call it independently.
+- **Language change = URL redirect** — redirect users to the new locale URL rather than switching dynamically. Server-rendered locale-dependent content would go stale with dynamic switching.
+- **Static rendering** — use `generateStaticParams` to build pages for all locales at build time. Never define translated strings at module level (outside components), as they'll be frozen to whichever locale was active when the module was first imported:
+
+```tsx
+// ❌ Frozen to build-time locale
+const greeting = t(i18n)`Hello World`;
+
+// ✅ Rendered per locale via generateStaticParams
+export default function Page() {
+  return <Trans>Hello world</Trans>;
+}
+```
+
+Reference: [lingui.dev/tutorials/react-rsc](https://lingui.dev/tutorials/react-rsc)
+
 ---
 
 ## React + react-i18next (Vite / CRA)
@@ -177,7 +330,7 @@ t('items', { count: 5 }) // "5 items"
 
 ---
 
-## React + Lingui
+## React + Lingui (Vite / CRA)
 
 ### 1. Install + configure
 ```bash
@@ -349,3 +502,5 @@ declare global {
 | RTL layout not flipping | `dir` set on wrong element | Set `dir` on `<html>`, not `<body>` or a wrapper div |
 | Missing translation key warning | Key exists in `en.json` but not `ar.json` | Run `i18n-check` or TypeScript type validation |
 | `next-intl` server/client mismatch | Using `useTranslations` in a server component | Use `getTranslations` (async) in server components |
+| Lingui translations frozen to one locale | Module-level `t()` call at build time | Move translation inside the component or use lazy translation |
+| Lingui RSC — wrong locale in nested page | `setI18n` only called in root layout | Call `setI18n` in every page and layout independently |
