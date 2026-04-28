@@ -46,7 +46,7 @@ Read `references/07-framework-patterns.md` for ready-to-use code patterns per fr
 Always follow this sequence when starting an i18n project in JS/React/Next.js:
 
 1. **Define URL routing pattern** — decide before writing any code. In Next.js App Router this means middleware + `[locale]` segment. In React Router this means a locale-aware wrapper route.
-2. **Install and configure the i18n library** — for Next.js use `next-intl`; for React use `react-i18next` or `lingui`; see `references/05-tools.md` for the full comparison.
+2. **Install and configure the i18n library** — for Next.js use `next-intl` or `lingui`; for React use `react-i18next` or `lingui`; see `references/05-tools.md` for the full comparison.
 3. **Set up message files** — create `/messages/en.json` (or `/locales/en/common.json`) as the source of truth. All other languages mirror its structure.
 4. **Configure layout direction** — set `dir` and `lang` on `<html>` dynamically from the active locale. In Next.js App Router, do this in `app/[locale]/layout.tsx`.
 5. **Build data formatting utilities** — create a shared `lib/format.ts` (or similar) wrapping `Intl.*` objects configured for the active locale.
@@ -121,13 +121,13 @@ Read `references/06-ui.md` for:
 
 ## Quick Stack Reference
 
-| Stack                | Recommended library           | Routing approach               |
-| -------------------- | ----------------------------- | ------------------------------ |
-| Next.js App Router   | `next-intl`                   | `app/[locale]/` + middleware   |
-| Next.js Pages Router | `next-intl` or `next-i18next` | `pages/[locale]/`              |
-| React (Vite/CRA)     | `react-i18next` or `lingui`   | React Router v6 locale wrapper |
-| Remix                | `remix-i18next`               | Loader-based locale detection  |
-| Astro                | `astro-i18n` or `i18next`     | `src/pages/[locale]/`          |
+| Stack | Recommended library | Routing approach |
+|---|---|---|
+| Next.js App Router | `next-intl` or `lingui` | `app/[locale]/` + middleware |
+| Next.js Pages Router | `next-intl` or `next-i18next` | `pages/[locale]/` |
+| React (Vite/CRA) | `react-i18next` or `lingui` | React Router v6 locale wrapper |
+| Remix | `remix-i18next` | Loader-based locale detection |
+| Astro | `astro-i18n` or `i18next` | `src/pages/[locale]/` |
 
 For full library comparison and setup details → `references/05-tools.md`
 For framework-specific code patterns → `references/07-framework-patterns.md`
