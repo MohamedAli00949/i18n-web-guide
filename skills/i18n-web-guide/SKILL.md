@@ -1,5 +1,5 @@
 ---
-name: i18n-web-apps
+name: i18n-web-guide
 description: >
   I18n for JS/React/Next.js — routing, SEO, ICU messages, Intl formatting, RTL/LTR, Arabic support. Trigger for: multilingual apps, hreflang, locale URLs, date/number/currency, RTL styling, Tailwind logical props, next-intl/lingui/react-i18next, translation files, Arabic/cursive bugs, dir attribute, writing modes. Claude Code: trigger when working on JS/React/Next.js codebase with any i18n task.
 ---
